@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Triage Assist v1.1</title>
+    <style>
+        :root {
+            --level1: #ef4444; --level2: #f97316; --level3: #eab308; --level4: #22c55e;
+            --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+        }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 220px; }
+        .header { background: #fff; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.1rem; margin: 0; color: #1e40af; }
+        .version { font-size: 0.7rem; color: #64748b; font-weight: bold; }
+        
+        .content { padding: 12px; max-width: 500px; margin: 0 auto; }
+        .step-box { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h2 { font-size: 0.85rem; margin: 0 0 10px; color: #64748b; font-weight: bold; border-left: 3px solid #cbd5e1; padding-left: 8px; }
+        
+        .symptom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sym-btn { font-size: 11px; padding: 12px 6px; border: 2px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; }
+        .sym-red.active { background: var(--level1) !important; color: white !important; border-color: #b91c1c !important; }
+        .sym-orange.active { background: var(--level2) !important; color: white !important; border-color: #c2410c !important; }
+        .sym-btn.active::before { content: '✓ '; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+        .btn { padding: 12px 4px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f1f5f9; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; }
+        .btn.active { background: #3b82f6 !important; color: white !important; border-color: #2563eb !important; }
+        .btn.alert { background: #fee2e2; color: #b91c1c; border-color: #ef4444; }
+        
+        .ac-btn { display: flex; align-items: center; padding: 10px; text-align: left; margin-bottom: 4px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+        .ac-btn.active { background: #3b82f6; color: white; border-color: #2563eb; }
+        .ac-btn b { font-size: 18px; width: 30px; flex-shrink: 0; }
+        .ac-btn span { font-size: 12px; line-height: 1.2; }
+
+        .input-group { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+        .input-group label { font-size: 10px; font-weight: bold; color: #64748b; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        input.critical { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: bold; }
+        input.warning { background: #fff7ed !important; border-color: #f97316 !important; }
+
+        .footer-result {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #fff; padding: 12px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            z-index: 100; border-top: 1px solid #e2e8f0;
+        }
+        .result-card { padding: 12px; border-radius: 10px; color: white; text-align: center; }
+        .lv1 { background: var(--level1); } .lv2 { background: var(--level2); } .lv3 { background: var(--level3); } .lv4 { background: var(--level4); }
+        .result-title { font-size: 1.25rem; font-weight: 900; margin: 0; }
+        
+        .action-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; margin-top: 8px; }
+        .gen-btn { padding: 14px; background: #1e293b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .copy-btn { padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🩺 トリアージ・サポーター</h1>
+    <span class="version">Ver 1.1</span>
+</div>
+
+<div class="content">
+    <div class="step-box">
+        <h2>★ 緊急症状（レッドフラッグ）</h2>
+        <div class="symptom-grid">
+            <button id="sym-1" class="sym-btn sym-red" onclick="toggleSym('1', 1)">突然の激しい胸痛</button>
+            <button id="sym-2" class="sym-btn sym-red" onclick="toggleSym('2', 1)">突然の麻痺・失語</button>
+            <button id="sym-3" class="sym-btn sym-red" onclick="toggleSym('3', 1)">大量の出血・吐血</button>
+            <button id="sym-4" class="sym-btn sym-orange" onclick="toggleSym('4', 2)">激しい頭痛</button>
+            <button id="sym-5" class="sym-btn sym-orange" onclick="toggleSym('5', 2)">激しい腹痛</button>
+            <button id="sym-6" class="sym-btn sym-orange" onclick="toggleSym('6', 2)">ひどい喘鳴・努力呼吸</button>
+        </div>
+    </div>
+
+    <div class="step-box">
+        <h2>① 自覚症状（本人の訴え）</h2>
+        <textarea id="in-subjective" rows="2" placeholder="例：「胸が締め付けられるように痛い」「息がしにくい」など" style="font-size: 14px;"></textarea>
+    </div>
+
+    <div class="step-box">
+        <h2>② 第一印象と意識（ACVPU）</h2>
+        <div class="grid-2" style="margin-bottom: 12px;">
+            <div id="btn-sick" class="btn" onclick="toggleBtn('sick')">重症感(Sick)あり</div>
+            <div id="btn-walk" class="btn" onclick="toggleBtn('walk')">自力歩行不可</div>
+        </div>
+        <div id="ac-A" class="ac-btn active" onclick="setACVPU('A')"><b>A</b> <span><b>清明</b>：はっきりしている</span></div>
+        <div id="ac-C" class="ac-btn" onclick="setACVPU('C')"><b>C</b> <span><b>混乱</b>：いつもと違う・不穏</span></div>
+        <div id="ac-V" class="ac-btn" onclick="setACVPU('V')"><b>V</b> <span><b>声掛け</b>：呼ぶと反応する</span></div>
+        <div id="ac-P" class="ac-btn" onclick="setACVPU('P')"><b>P</b> <span><b>痛み</b>：痛み刺激で反応</span></div>
+        <div id="ac-U" class="ac-btn" onclick="setACVPU('U')"><b>U</b> <span><b>無反応</b></span></div>
+    </div>
+
+    <div class="step-box">
+        <h2>③ 身体所見・バイタル入力</h2>
+        <div class="grid-2" style="margin-bottom: 12px;">
+            <div id="btn-radial" class="btn" onclick="toggleBtn('radial')">手首の脈が触れない</div>
+            <div id="btn-airway" class="btn" onclick="toggleBtn('airway')">気道閉塞の疑い</div>
+        </div>
+        <div class="grid-3">
+            <div class="input-group"><label>呼吸数 (RR)</label><input type="number" id="in-rr" placeholder="12-20" oninput="eval()"></div>
+            <div class="input-group"><label>SpO2 (%)</label><input type="number" id="in-spo2" placeholder="96-" oninput="eval()"></div>
+            <div class="input-group"><label>脈拍 (HR)</label><input type="number" id="in-hr" placeholder="60-100" oninput="eval()"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label>血圧(上) (sBP)</label><input type="number" id="in-sbp" placeholder="100-" oninput="eval()"></div>
+            <div class="input-group"><label>体温 (BT ℃)</label><input type="number" id="in-bt" step="0.1" placeholder="36.5" oninput="eval()"></div>
+        </div>
+    </div>
+
+    <textarea id="output-soap" style="width:100%; height:120px; margin-top:10px; font-size:12px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 8px; box-sizing: border-box;" placeholder="記録文がここに表示されます"></textarea>
+</div>
+
+<div class="footer-result">
+    <div id="res-card" class="result-card lv4">
+        <p id="res-text" class="result-title">レベル 4 (非緊急)</p>
+        <p id="res-guide" style="margin:2px 0 0; font-size: 0.75rem; font-weight: bold;">通常通りの対応</p>
+    </div>
+    <div class="action-grid">
+        <button class="gen-btn" onclick="genSOAP()">記録を生成</button>
+        <button class="copy-btn" onclick="copyToClipboard()">コピー</button>
+    </div>
+</div>
+
+<script>
+    const state = { sick: false, walk: false, acvpu: 'A', radial: false, airway: false, symptoms: [] };
+    const acvpuJP = { A: "清明", C: "混乱（いつもと違う）", V: "声掛けで反応", P: "痛みで反応", U: "反応なし" };
+
+    function toggleBtn(id) {
+        state[id] = !state[id];
+        document.getElementById('btn-' + id).classList.toggle('alert', state[id]);
+        eval();
+    }
+
+    function toggleSym(id, lv) {
+        const btn = document.getElementById('sym-' + id);
+        const name = btn.innerText.replace('✓ ', '');
+        if (state.symptoms.includes(name)) {
+            state.symptoms = state.symptoms.filter(s => s !== name);
+            btn.classList.remove('active');
+        } else {
+            state.symptoms.push(name);
+            btn.classList.add('active');
+        }
+        eval();
+    }
+
+    function setACVPU(v) {
+        state.acvpu = v;
+        ['A','C','V','P','U'].forEach(k => {
+            document.getElementById('ac-'+k).classList.toggle('active', v===k);
+        });
+        eval();
+    }
+
+    function eval() {
+        let lv = 4;
+        const rr = parseInt(document.getElementById('in-rr').value);
+        const spo2 = parseInt(document.getElementById('in-spo2').value);
+        const hr = parseInt(document.getElementById('in-hr').value);
+        const sbp = parseInt(document.getElementById('in-sbp').value);
+        const bt = parseFloat(document.getElementById('in-bt').value);
+
+        if (state.symptoms.some(s => ["突然の激しい胸痛", "突然の麻痺・失語", "大量の出血・吐血"].includes(s))) lv = 1;
+        else if (state.symptoms.length > 0) lv = 2;
+
+        if (state.airway || state.radial || state.acvpu === 'P' || state.acvpu === 'U' || rr >= 30 || rr < 10 || spo2 < 90 || hr >= 120 || sbp <= 90) lv = 1;
+
+        if (lv > 1) {
+            if (state.sick || state.acvpu === 'V' || spo2 < 92 || bt >= 39.0 || bt < 35.0) lv = 2;
+        }
+
+        if (lv > 2) {
+            if (state.walk || state.acvpu === 'C' || bt >= 38.0 || rr >= 22 || sbp <= 100) lv = 3;
+        }
+
+        document.getElementById('in-rr').className = (rr >= 30 || rr < 10) ? 'critical' : (rr >= 22 ? 'warning' : '');
+        document.getElementById('in-spo2').className = (spo2 < 90) ? 'critical' : (spo2 < 92 ? 'warning' : '');
+        document.getElementById('in-sbp').className = (sbp <= 90) ? 'critical' : (sbp <= 100 ? 'warning' : '');
+
+        const card = document.getElementById('res-card');
+        const text = document.getElementById('res-text');
+        const guide = document.getElementById('res-guide');
+        const labels = { 1:"レベル 1 (最優先)", 2:"レベル 2 (緊急)", 3:"レベル 3 (準緊急)", 4:"レベル 4 (非緊急)" };
+        const guides = { 1:"【直ちに報告】救急要請を検討", 2:"【至急報告】早期の受診が必要", 3:"【注意観察】バイタル再検・報告", 4:"通常通りの対応" };
+        
+        card.className = 'result-card lv' + lv;
+        text.innerText = labels[lv];
+        guide.innerText = guides[lv];
+    }
+
+    function genSOAP() {
+        const subjective = document.getElementById('in-subjective').value || '特記なし';
+        const rr = document.getElementById('in-rr').value || '-';
+        const spo2 = document.getElementById('in-spo2').value || '-';
+        const hr = document.getElementById('in-hr').value || '-';
+        const sbp = document.getElementById('in-sbp').value || '-';
+        const bt = document.getElementById('in-bt').value || '-';
+        const sym = state.symptoms.join('、') || 'なし';
+
+        const text = `【ER/訪問トリアージ報告】
+判定：${document.getElementById('res-text').innerText}
+
+S（本人の訴え）: 
+「${subjective}」
+
+O（客観的所見）:
+・主症状：${sym}
+・意識：${acvpuJP[state.acvpu]}
+・印象：${state.sick?'Sick':'Not Sick'}、歩行：${state.walk?'不可':'可'}
+・バイタル：BT ${bt}℃ / RR ${rr} / SpO2 ${spo2}% / HR ${hr} / sBP ${sbp}
+・身体異常：${state.airway?'気道狭窄音あり ':''}${state.radial?'橈骨拍動なし':''}
+
+A（評価）:
+JTAS準拠基準に基づき ${document.getElementById('res-text').innerText} と判定。
+
+P（方針）:
+判定結果に基づき、医師報告・受診調整または観察強化を実施。`;
+        
+        document.getElementById('output-soap').value = text;
+    }
+
+    async function copyToClipboard() {
+        const text = document.getElementById('output-soap').value;
+        if (!text) {
+            alert("先に記録を生成してください。");
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            const btn = document.querySelector('.copy-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "コピー完了！";
+            btn.style.background = "#059669";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "#2563eb";
+            }, 2000);
+        } catch (err) {
+            alert("コピーに失敗しました。お使いのブラウザの設定を確認してください。");
+        }
+    }
+</script>
+</body>
+</html>
