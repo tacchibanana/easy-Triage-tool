@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>トリアージ・サポーター v1.5</title>
+    <title>トリアージ・サポーター v1.6</title>
     <style>
         :root {
             --jtas1: #0000ff; --jtas2: #ff0000; --jtas3: #ffff00; --jtas4: #008000; --jtas5: #ffffff;
@@ -21,8 +21,8 @@
         .sym-btn { font-size: 11px; padding: 10px 4px; border: 2px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .sym-btn.active::before { content: '✓ '; }
         
-        .lv2-btn.active { background: var(--jtas2) !important; color: white !important; border-color: #b91c1c !important; }
-        .lv3-btn.active { background: var(--jtas3) !important; color: black !important; border-color: #eab308 !important; }
+        .lv2-btn.active { background: var(--jtas2) !important; color: white !important; }
+        .lv3-btn.active { background: var(--jtas3) !important; color: black !important; }
 
         .move-btn { font-size: 11px; padding: 10px 4px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; }
         .move-btn.active { background: #3b82f6 !important; color: white !important; }
@@ -35,13 +35,15 @@
         .btn.active { background: #3b82f6 !important; color: white !important; }
         .btn.alert { background: #fee2e2; color: #b91c1c; border-color: #ef4444; }
         
-        .ac-btn { display: flex; align-items: center; padding: 10px; text-align: left; margin-bottom: 4px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
-        .ac-btn.active { background: #3b82f6; color: white; }
-        .ac-btn b { font-size: 18px; width: 30px; flex-shrink: 0; }
+        /* 意識評価ボタンの拡張 */
+        .ac-btn { display: flex; flex-direction: column; align-items: flex-start; padding: 10px; text-align: left; margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+        .ac-btn.active { background: #3b82f6; color: white; border-color: #2563eb; }
+        .ac-head { display: flex; align-items: center; width: 100%; }
+        .ac-head b { font-size: 18px; width: 30px; }
+        .ac-head span { font-size: 13px; font-weight: bold; }
+        .ac-guide { font-size: 10px; margin-top: 4px; opacity: 0.8; padding-left: 30px; }
 
         input, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        
-        /* バイトル警告色 */
         input.lv2-warn { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: bold; }
         input.lv3-warn { background: #fef9c3 !important; border-color: #eab308 !important; color: #854d0e !important; }
 
@@ -62,7 +64,7 @@
 
 <div class="header">
     <h1>🩺 トリアージ・サポーター</h1>
-    <span style="font-size: 0.7rem; color: #64748b; font-weight: bold;">v1.5 (HR判定強化版)</span>
+    <span style="font-size: 0.7rem; color: #64748b; font-weight: bold;">v1.6 (意識評価強化)</span>
 </div>
 
 <div class="content">
@@ -98,39 +100,54 @@
             <button id="move-cant" class="move-btn" onclick="setMove('cant')">歩行不可</button>
         </div>
         <div class="grid-2" style="margin-top:4px;">
-            <button id="move-shake" class="move-btn" onclick="setMove('shake')">強いふらつき</button>
-            <button id="move-wheel" class="move-btn" onclick="setMove('wheel')">車椅子/寝たきり</button>
+            <button id="move-shake" class="move-btn" onclick="setMove('shake')">ふらつき</button>
+            <button id="move-wheel" class="move-btn" onclick="setMove('wheel')">寝たきり化</button>
         </div>
     </div>
 
     <div class="step-box">
         <h2>② S：自覚症状（本人の訴え）</h2>
-        <textarea id="in-subjective" rows="2" placeholder="主訴、随伴症状など"></textarea>
+        <textarea id="in-subjective" rows="2" placeholder="主訴、いつから、痛みの性質など"></textarea>
     </div>
 
     <div class="step-box">
         <h2>③ O：意識状態 (ACVPU)</h2>
-        <div id="ac-A" class="ac-btn active" onclick="setACVPU('A')"><b>A</b> <span><b>清明</b>：通常通り</span></div>
-        <div id="ac-C" class="ac-btn" onclick="setACVPU('C')"><b>C</b> <span><b>混乱</b>：不穏・失見当識</span></div>
-        <div id="ac-V" class="ac-btn" onclick="setACVPU('V')"><b>V</b> <span><b>声掛け</b>：呼ぶと反応</span></div>
-        <div id="ac-P" class="ac-btn" onclick="setACVPU('P')"><b>P</b> <span><b>痛み</b>：刺激で反応</span></div>
-        <div id="ac-U" class="ac-btn" onclick="setACVPU('U')"><b>U</b> <span><b>無反応</b></span></div>
+        <div id="ac-A" class="ac-btn active" onclick="setACVPU('A')">
+            <div class="ac-head"><b>A</b> <span>清明 (Alert)</span></div>
+            <div class="ac-guide">目を開けている、普段通り話せる、指示に従える</div>
+        </div>
+        <div id="ac-C" class="ac-btn" onclick="setACVPU('C')">
+            <div class="ac-head"><b>C</b> <span>混乱 (Confusion)</span></div>
+            <div class="ac-guide">目は開いているが、つじつまが合わない・不穏</div>
+        </div>
+        <div id="ac-V" class="ac-btn" onclick="setACVPU('V')">
+            <div class="ac-head"><b>V</b> <span>声掛け (Voice)</span></div>
+            <div class="ac-guide">呼ぶと目を開ける、指示に反応する</div>
+        </div>
+        <div id="ac-P" class="ac-btn" onclick="setACVPU('P')">
+            <div class="ac-head"><b>P</b> <span>痛み (Pain)</span></div>
+            <div class="ac-guide">痛み刺激で目を開ける、または手足が動く</div>
+        </div>
+        <div id="ac-U" class="ac-btn" onclick="setACVPU('U')">
+            <div class="ac-head"><b>U</b> <span>無反応 (Unresponsive)</span></div>
+            <div class="ac-guide">どんな刺激に対しても全く反応がない</div>
+        </div>
     </div>
 
     <div class="step-box">
-        <h2>④ O：バイタルサイン (JTAS基準)</h2>
+        <h2>④ O：バイタルサイン</h2>
         <div class="grid-2">
-            <div id="btn-radial" class="btn" onclick="toggleVitalBtn('radial')">骨動脈 触知不可</div>
+            <div id="btn-radial" class="btn" onclick="toggleVitalBtn('radial')">橈骨動脈 触知不可</div>
             <div id="btn-sick" class="btn" onclick="toggleVitalBtn('sick')">重症感(Sick)あり</div>
         </div>
         <div class="grid-3">
-            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">RR(回/分)</label><input type="number" id="in-rr" placeholder="12-20" oninput="eval()"></div>
-            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">SpO2(%)</label><input type="number" id="in-spo2" placeholder="96-" oninput="eval()"></div>
-            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">HR(回/分)</label><input type="number" id="in-hr" placeholder="60-100" oninput="eval()"></div>
+            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">RR</label><input type="number" id="in-rr" placeholder="12-20" oninput="eval()"></div>
+            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">SpO2</label><input type="number" id="in-spo2" placeholder="96-" oninput="eval()"></div>
+            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">HR</label><input type="number" id="in-hr" placeholder="60-100" oninput="eval()"></div>
         </div>
         <div class="grid-2">
-            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">sBP(mmHg)</label><input type="number" id="in-sbp" placeholder="100-" oninput="eval()"></div>
-            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">BT(℃)</label><input type="number" id="in-bt" step="0.1" placeholder="36.5" oninput="eval()"></div>
+            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">sBP</label><input type="number" id="in-sbp" placeholder="100-" oninput="eval()"></div>
+            <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">BT</label><input type="number" id="in-bt" step="0.1" placeholder="36.5" oninput="eval()"></div>
         </div>
     </div>
 
@@ -151,7 +168,7 @@
 <script>
     let symptoms = { lv2: [], lv3: [] };
     let vitals = { sick: false, radial: false, acvpu: 'A', move: 'none' };
-    const acvpuJP = { A: "清明", C: "混乱", V: "呼名反応", P: "痛刺激反応", U: "無反応" };
+    const acvpuJP = { A: "Alert(清明/従命可)", C: "Confusion(混乱/不穏)", V: "Voice(呼名反応)", P: "Pain(痛刺激反応)", U: "Unresponsive(無反応)" };
     const moveJP = { none: "変化なし", help: "要介助化", cant: "歩行不可", shake: "ふらつき", wheel: "寝たきり/車椅子化" };
 
     function toggleSym(btn, lv) {
@@ -193,14 +210,12 @@
         const hr = parseInt(document.getElementById('in-hr').value);
         const bt = parseFloat(document.getElementById('in-bt').value);
 
-        // バイトル警告色
         document.getElementById('in-rr').className = (rr >= 30 || rr < 10) ? 'lv2-warn' : (rr >= 22 ? 'lv3-warn' : '');
         document.getElementById('in-hr').className = (hr >= 120 || hr <= 40) ? 'lv2-warn' : (hr >= 100 || (hr > 40 && hr <= 50) ? 'lv3-warn' : '');
         document.getElementById('in-sbp').className = (sbp <= 90) ? 'lv2-warn' : (sbp <= 100 ? 'lv3-warn' : '');
 
-        // 判定ロジック
         if (vitals.radial || vitals.acvpu === 'P' || vitals.acvpu === 'U' || rr >= 30 || rr < 10 || spo2 < 90 || sbp <= 90 || hr >= 120 || hr <= 40) {
-            lv = 1; // JTAS1または2
+            lv = 1;
         } else if (symptoms.lv2.length > 0 || vitals.sick || vitals.acvpu === 'V' || spo2 < 92 || bt >= 39.0 || bt < 35.0 || vitals.move === 'cant') {
             lv = 2;
         } else if (symptoms.lv3.length > 0 || vitals.acvpu === 'C' || bt >= 38.0 || rr >= 22 || sbp <= 100 || hr >= 100 || hr <= 50 || vitals.move !== 'none') {
@@ -240,11 +255,12 @@
 S：「${sub}」
 
 O：
-・意識：${acvpuJP[vitals.acvpu]} / 移動：${moveJP[vitals.move]}
+・意識：${acvpuJP[vitals.acvpu]}
+・ADL変化：${moveJP[vitals.move]}
 ・バイタル：BT ${bt}℃ / RR ${rr} / SpO2 ${spo2}% / HR ${hr} / sBP ${sbp}
-・症状：${allSym} / 印象：${vitals.sick?'Sick':'Not Sick'}
+・主症状：${allSym} / 印象：${vitals.sick?'Sick':'Not Sick'}
 
-A：JTAS基準（脈拍・バイタル・ADL変化）に基づき緊急度を評価。
+A：JTAS基準に基づき評価。意識評価（開眼・発語・従命）を含む包括的判定を実施。
 
 P：${document.getElementById('res-guide').innerText}。`;
     }
