@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>トリアージ・サポーター v1.8</title>
+    <title>トリアージ・サポーター v1.9</title>
     <style>
         :root {
             --jtas1: #2563eb; --jtas2: #dc2626; --jtas3: #f59e0b; --jtas4: #16a34a; --jtas5: #f8fafc;
@@ -39,17 +39,20 @@
         .lv2-btn.active { background: var(--jtas2) !important; color: white !important; border-color: #b91c1c !important; }
         .lv3-btn.active { background: var(--jtas3) !important; color: #000 !important; border-color: #d97706 !important; }
 
-        .move-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        /* v1.6準拠のレイアウト */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
         .move-btn { 
             font-size: 13px; padding: 14px 4px; border: 2px solid #e2e8f0; background: #f8fafc; 
-            border-radius: 10px; cursor: pointer; text-align: center; font-weight: bold;
+            border-radius: 10px; cursor: pointer; text-align: center; font-weight: bold; color: var(--text-main);
         }
         .move-btn.active { background: #3b82f6 !important; color: white !important; border-color: #2563eb !important; }
 
         .v-opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .v-opt-btn { 
             padding: 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f1f5f9; 
-            font-weight: bold; font-size: 14px; cursor: pointer; text-align: center;
+            font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; color: var(--text-main);
         }
         .v-opt-btn.active { background: #3b82f6 !important; color: white !important; }
         .v-opt-btn.alert { background: #fee2e2; color: #b91c1c; border-color: #ef4444; }
@@ -93,17 +96,14 @@
         .gen-btn { background: #1e293b; color: white; }
         .copy-btn { background: #2563eb; color: white; }
 
-        /* コピーライト表示 */
-        .copyright {
-            text-align: center; font-size: 11px; color: var(--text-sub); margin-top: 12px; font-weight: bold; letter-spacing: 0.05em;
-        }
+        .copyright { text-align: center; font-size: 11px; color: var(--text-sub); margin-top: 12px; font-weight: bold; letter-spacing: 0.05em; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h1>🩺 トリアージ・サポーター</h1>
-    <span class="version">v1.8</span>
+    <span class="version">v1.9 UD</span>
 </div>
 
 <div class="content">
@@ -133,14 +133,14 @@
 
     <div class="step-box">
         <h2>① 移動手段・歩行状態の変化</h2>
-        <div class="move-grid">
+        <div class="grid-3">
             <button id="move-none" class="move-btn active" onclick="setMove('none')">変化なし</button>
             <button id="move-help" class="move-btn" onclick="setMove('help')">要介助化</button>
             <button id="move-cant" class="move-btn" onclick="setMove('cant')">歩行不可</button>
         </div>
         <div class="grid-2">
             <button id="move-shake" class="move-btn" onclick="setMove('shake')">強いふらつき</button>
-            <button id="move-wheel" class="move-btn" onclick="setMove('wheel')">寝たきり化</button>
+            <button id="move-wheel" class="move-btn" onclick="setMove('wheel')">寝たきり/車椅子化</button>
         </div>
     </div>
 
@@ -180,15 +180,15 @@
             <button id="btn-sick" class="v-opt-btn" onclick="toggleVitalBtn('sick')">重症感(Sick)あり</button>
         </div>
         <div class="vital-grid">
-            <div class="input-group"><label>呼吸数 (RR)</label><input type="number" id="in-rr" oninput="eval()"></div>
-            <div class="input-group"><label>SpO2 (%)</label><input type="number" id="in-spo2" oninput="eval()"></div>
-            <div class="input-group"><label>脈拍 (HR)</label><input type="number" id="in-hr" oninput="eval()"></div>
-            <div class="input-group"><label>血圧上 (sBP)</label><input type="number" id="in-sbp" oninput="eval()"></div>
+            <div class="input-group"><label>呼吸数 (RR)</label><input type="number" id="in-rr" placeholder="12-20" oninput="eval()"></div>
+            <div class="input-group"><label>SpO2 (%)</label><input type="number" id="in-spo2" placeholder="96-" oninput="eval()"></div>
+            <div class="input-group"><label>脈拍 (HR)</label><input type="number" id="in-hr" placeholder="60-100" oninput="eval()"></div>
+            <div class="input-group"><label>血圧上 (sBP)</label><input type="number" id="in-sbp" placeholder="100-" oninput="eval()"></div>
         </div>
-        <div class="input-group" style="margin-top:10px;"><label>体温 (BT ℃)</label><input type="number" id="in-bt" step="0.1" oninput="eval()"></div>
+        <div class="input-group" style="margin-top:10px;"><label>体温 (BT ℃)</label><input type="number" id="in-bt" step="0.1" placeholder="36.5" oninput="eval()"></div>
     </div>
 
-    <div class="step-box">
+    <div class="step-box" style="margin-bottom: 20px;">
         <h2>生成された記録 (SOAP)</h2>
         <textarea id="output-soap" style="height:150px; font-size:14px;"></textarea>
     </div>
@@ -292,7 +292,7 @@
 判定結果：${document.getElementById('res-text').innerText}
 
 S：「${sub}」
-O：意識 ${acvpuJP[vitals.acvpu]} / ADL ${moveJP[vitals.move]}
+O：意識 ${acvpuJP[vitals.acvpu]} / 移動 ${moveJP[vitals.move]}
 バイタル：BT ${bt}℃ / RR ${rr} / SpO2 ${spo2}% / HR ${hr} / sBP ${sbp}
 主症状：${allSym} / 印象：${vitals.sick?'Sick':'Not Sick'}
 A：JTAS基準に基づき包括判定。
