@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>トリアージ・サポーター v1.9</title>
+    <title>トリアージ・サポーター v2.0</title>
     <style>
         :root {
             --jtas1: #2563eb; --jtas2: #dc2626; --jtas3: #f59e0b; --jtas4: #16a34a; --jtas5: #f8fafc;
@@ -39,7 +39,6 @@
         .lv2-btn.active { background: var(--jtas2) !important; color: white !important; border-color: #b91c1c !important; }
         .lv3-btn.active { background: var(--jtas3) !important; color: #000 !important; border-color: #d97706 !important; }
 
-        /* v1.6準拠のレイアウト */
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         
@@ -103,7 +102,7 @@
 
 <div class="header">
     <h1>🩺 トリアージ・サポーター</h1>
-    <span class="version">v1.9 UD</span>
+    <span class="version">v2.0</span>
 </div>
 
 <div class="content">
@@ -174,7 +173,7 @@
     </div>
 
     <div class="step-box">
-        <h2>④ O：バイタルサイン</h2>
+        <h2>④ O：バイタルサイン & その他症状</h2>
         <div class="v-opt-grid">
             <button id="btn-radial" class="v-opt-btn" onclick="toggleVitalBtn('radial')">橈骨動脈 触知不可</button>
             <button id="btn-sick" class="v-opt-btn" onclick="toggleVitalBtn('sick')">重症感(Sick)あり</button>
@@ -186,11 +185,16 @@
             <div class="input-group"><label>血圧上 (sBP)</label><input type="number" id="in-sbp" placeholder="100-" oninput="eval()"></div>
         </div>
         <div class="input-group" style="margin-top:10px;"><label>体温 (BT ℃)</label><input type="number" id="in-bt" step="0.1" placeholder="36.5" oninput="eval()"></div>
+        
+        <div class="input-group" style="margin-top:16px;">
+            <label>その他症状・所見 (自由記述)</label>
+            <textarea id="in-other-sym" rows="2" placeholder="浮腫、冷汗、喘鳴、創傷の状態など"></textarea>
+        </div>
     </div>
 
     <div class="step-box" style="margin-bottom: 20px;">
         <h2>生成された記録 (SOAP)</h2>
-        <textarea id="output-soap" style="height:150px; font-size:14px;"></textarea>
+        <textarea id="output-soap" style="height:180px; font-size:14px;"></textarea>
     </div>
 </div>
 
@@ -281,22 +285,31 @@
 
     function genSOAP() {
         const sub = document.getElementById('in-subjective').value || '特記なし';
+        const otherSym = document.getElementById('in-other-sym').value || 'なし';
         const rr = document.getElementById('in-rr').value || '-';
         const spo2 = document.getElementById('in-spo2').value || '-';
         const hr = document.getElementById('in-hr').value || '-';
         const sbp = document.getElementById('in-sbp').value || '-';
         const bt = document.getElementById('in-bt').value || '-';
         const allSym = [...symptoms.lv2, ...symptoms.lv3].join('、') || 'なし';
+        const resText = document.getElementById('res-text').innerText;
 
         document.getElementById('output-soap').value = `【トリアージ報告書】
-判定結果：${document.getElementById('res-text').innerText}
+判定結果：${resText}
 
 S：「${sub}」
-O：意識 ${acvpuJP[vitals.acvpu]} / 移動 ${moveJP[vitals.move]}
-バイタル：BT ${bt}℃ / RR ${rr} / SpO2 ${spo2}% / HR ${hr} / sBP ${sbp}
-主症状：${allSym} / 印象：${vitals.sick?'Sick':'Not Sick'}
-A：JTAS基準に基づき包括判定。
-P：${document.getElementById('res-guide').innerText}。`;
+
+O：
+・意識：${acvpuJP[vitals.acvpu]}
+・移動・歩行：${moveJP[vitals.move]}
+・バイタル：BT ${bt}℃ / RR ${rr} / SpO2 ${spo2}% / HR ${hr} / sBP ${sbp}
+・選択症状：${allSym}
+・その他所見：${otherSym}
+・全体印象：${vitals.sick?'Sick appearanceあり':'Not Sick'}
+
+A：JTAS基準に基づき包括判定した結果、緊急度は【${resText}】と判断。
+
+P：${document.getElementById('res-guide').innerText}。状態変化に留意し、継続観察を実施。`;
     }
 
     async function copyToClipboard() {
